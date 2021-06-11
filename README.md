@@ -21,3 +21,13 @@ Create a file named `config.py` in the top-level of the repository, which includ
 ## Running
 The script pulls comments from /r/wallstreetbets, from posts in the last 7 days under the flair "Daily Discussion". Tickers mentioned are counted, plotted, and saved using matplotlib.
 
+```
+python3 wsb_scraper.py
+```
+
+## Thank you
+The backbone of this code was adopted from a repository by user [brian654321](https://github.com/brian654321/wall-street-bets-index)
+```
+Vader Sentiment Analysis
+Hutto, C.J. & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for Sentiment Analysis of Social Media Text. Eighth International Conference on Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
+```
