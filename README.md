@@ -17,6 +17,14 @@ pip install -r requirements.txt
 ## Config
 Create a file named `config.py` in the top-level of the repository, which includes the credentials needed for the Reddit API: `client_id, client_secret, user_agent`.
 
+Create a file named `.env` in the top-level of the repsitory to include variables used by Docker-Compose, for example:
+```
+PGUSER=postgres
+PGHOST=postgres
+PGDATABASE=postgres
+PGPASSWORD=postgres
+PGPORT=5432
+```
 
 ## Running
 The script pulls comments from /r/wallstreetbets, from posts in the last 7 days under the flair "Daily Discussion". Tickers mentioned are counted, plotted, and saved using matplotlib.

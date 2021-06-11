@@ -1,4 +1,6 @@
 praw
 pandas
 matplotlib
-
+vaderSentiment
+sqlalchemy
+psycopg2
