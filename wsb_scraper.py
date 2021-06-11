@@ -3,6 +3,7 @@ import praw
 from praw.models import MoreComments
 import pandas as pd
 import matplotlib.pyplot as plt
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # Creates a set of stock tickers in NASDAQ
 def nasdaq_tickers():
@@ -14,29 +15,44 @@ def nasdaq_tickers():
         tickers.add(line[:line.index("|")])
     return tickers
 
-def searchFlairs(flair):
+# Search wsb top level comments given a flair and time interval (week, day, hour, etc.). 
+# Returns: 
+# results - dictionary containing ticker and amount of times it was mentioned in the time interval.
+# ticker_info - list of dictionaries containing ticker name and sentiment. used later in a Pandas dataframe for agg. functions
+def searchFlairs(flair, time):
     reddit = praw.Reddit(client_id = config.client_id, client_secret = config.client_secret, user_agent = config.user_agent)
     counter = 0
     flagged_words = ["YOLO", "PUMP", "RH", "EOD", "IPO", "ATH", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", 
         "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
     ticker_set = nasdaq_tickers()
     tickers = {}
-    for submission in reddit.subreddit('wallstreetbets').search('flair:"%s"'%(flair), sort='new', time_filter='week'):
+
+    ticker_info = []
+
+    analyzer = SentimentIntensityAnalyzer()
+
+    for submission in reddit.subreddit('wallstreetbets').search('flair:"%s"'%(flair), sort='new', time_filter='%s'%(time)):
         print(submission.title)
         for top_level_comment in submission.comments:
+            ticker_sentiment = {}
             if isinstance(top_level_comment, MoreComments):
                 continue 
             for word in top_level_comment.body.split():
                 if word == word.upper() and word in ticker_set and word not in flagged_words:
+                    vs = analyzer.polarity_scores(top_level_comment.body)
+                    ticker_sentiment['ticker'] = word
+                    ticker_sentiment['sent'] = vs['compound']
+                    ticker_info.append(ticker_sentiment)
                     if word not in tickers:
                         tickers[word] = 1
                     else:
                         tickers[word] += 1
-    return tickers
+    return tickers, ticker_info
 
+# Plotting the tickers on a pie chart
 def popularTickers():
     #result = ticker_count()
-    result = searchFlairs('Daily Discussion')
+    result, ticker_info = searchFlairs('Daily Discussion', 'week')
     x = []
     y = []
     for a, b in result.items():
@@ -44,7 +60,7 @@ def popularTickers():
         if b > 5:
             x.append(a)
             y.append(b)
-    # Uncomment to see a pie graph 
+    # Uncomment to see a pie chart 
     fig1, ax1 = plt.subplots()
     ax1.pie(y, labels=x, autopct='%1.1f%%', shadow=True, startangle=90)
     ax1.axis('equal')
@@ -52,6 +68,11 @@ def popularTickers():
     plt.savefig('mygraph1.png')
     return x, y
 
-#searchFlairs('Daily Discussion')
 
-popularTickers()
+results, ticker_info = searchFlairs('Daily Discussion', 'week')
+
+# Calculate the average compound sentiment for the mentioned ticker comment: https://github.com/cjhutto/vaderSentiment#python-demo-and-code-examples
+df = pd.DataFrame(ticker_info)
+df_new = df.groupby(df['ticker'])['sent'].agg(['mean'])
+
+print(df_new)
