@@ -4,6 +4,7 @@ from praw.models import MoreComments
 import pandas as pd
 import matplotlib.pyplot as plt
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from sqlalchemy import create_engine
 
 # Creates a set of stock tickers in NASDAQ
 def nasdaq_tickers():
@@ -42,6 +43,7 @@ def searchFlairs(flair, time):
                     vs = analyzer.polarity_scores(top_level_comment.body)
                     ticker_sentiment['ticker'] = word
                     ticker_sentiment['sent'] = vs['compound']
+                    ticker_sentiment['ts'] = top_level_comment.created_utc
                     ticker_info.append(ticker_sentiment)
                     if word not in tickers:
                         tickers[word] = 1
@@ -68,11 +70,21 @@ def popularTickers():
     plt.savefig('mygraph1.png')
     return x, y
 
+# TODO: Don't replace the table if it exists, should be smart enough to handle duplicates
+def wsbPostgres(df):
+    engine = create_engine('postgresql://{db_user}:{db_pass}@{db_host}:5432/{db_server}'.format(
+        db_user=config.db_user, db_pass=config.password, db_host=config.db_host, db_server=config.db_name
+    ))
+    df.to_sql('wsb-test', engine, method='multi', if_exists='replace')
 
-results, ticker_info = searchFlairs('Daily Discussion', 'week')
+
+results, ticker_info = searchFlairs('Daily Discussion', 'day')
 
 # Calculate the average compound sentiment for the mentioned ticker comment: https://github.com/cjhutto/vaderSentiment#python-demo-and-code-examples
 df = pd.DataFrame(ticker_info)
+print(df)
 df_new = df.groupby(df['ticker'])['sent'].agg(['mean'])
+
+wsbPostgres(df_new)
 
 print(df_new)
