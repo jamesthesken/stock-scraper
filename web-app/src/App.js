@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { Grid } from 'gridjs-react';
+import "gridjs/dist/theme/mermaid.css";
 
 class App extends React.Component {
   constructor(props) {
@@ -42,14 +44,19 @@ class App extends React.Component {
       return <div>Loading...</div>;
     } else {
       return (
-        tickers.map((ticker, index) => {
-          return (
-              <tr key={index}>
-                  <td>{ticker.ticker}</td>
-                  <td>{ticker.mean}</td>
-              </tr>
-          )
-        })
+        <Grid
+          columns={['Ticker', 'Sentiment']}
+          server={{
+            url: "http://127.0.0.1:3001/v1/tickers",
+            then: data => data.result.map(ticker => [ticker.ticker, ticker.mean])
+          }}
+          search={true}
+          sort={true}
+          pagination={{
+            enabled: true,
+            limit: 5,
+          }}
+        />
       )
     }
   }

@@ -26,11 +26,17 @@ PGPASSWORD=postgres
 PGPORT=5432
 ```
 
-## Running
+## Running the scraper
 The script pulls comments from /r/wallstreetbets, from posts in the last 7 days under the flair "Daily Discussion". Tickers mentioned are counted, plotted, and saved using matplotlib.
 
 ```
 python3 wsb_scraper.py
+```
+## Running the user interface
+The front-end is built using ReactJS, and is served through Docker-Compose. This also includes the Postgres database and API written in ExpressJS.
+
+```
+docker-compose up --build
 ```
 
 ## Thank you
