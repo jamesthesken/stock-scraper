@@ -1,4 +1,4 @@
-# stock-scraper
+# stock-scraper🚀
 
 ## Build
 ```
